@@ -1,0 +1,41 @@
+version: "3.9"
+
+services:
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: analytics
+      POSTGRES_PASSWORD: analytics
+      POSTGRES_DB: analytics
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  ingestion_api:
+    build: ./ingestion_api
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+
+  processor:
+    build: ./processor
+    depends_on:
+      - redis
+      - postgres
+
+  reporting_api:
+    build: ./reporting_api
+    ports:
+      - "9000:9000"
+    depends_on:
+      - postgres
+
+volumes:
+  pgdata:
